@@ -1,31 +1,5 @@
-// import { createClient } from '@supabase/supabase-js';
-
-// const supabase = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-//   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-// );
-
-// export async function GET() {
-//   try {
-//     const { data, error } = await supabase
-//       .from('projects')
-//       .select('*')
-//       .eq('published', true)
-//       .order('created_at', { ascending: false });
-
-//     if (error) throw error;
-
-//     return Response.json(data || []);
-//   } catch (error) {
-//     console.error('Error fetching projects:', error);
-//     return Response.json([], { status: 500 });
-//   }
-// }
-
-
-
-
 // app/api/projects/route.ts
+
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
@@ -34,16 +8,17 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export const revalidate = 3600; // Revalidate every hour
+// ✅ Force this API route to always run dynamically
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+
     const category = searchParams.get('category');
     const featured = searchParams.get('featured');
     const limit = searchParams.get('limit');
 
-    // Build query
     let query = supabase
       .from('projects_complete')
       .select('*')
@@ -51,7 +26,6 @@ export async function GET(request: Request) {
       .order('display_order', { ascending: true })
       .order('created_at', { ascending: false });
 
-    // Apply filters
     if (category && category !== 'All') {
       query = query.eq('category', category);
     }
@@ -67,7 +41,6 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Supabase error:', error);
       return NextResponse.json(
         { error: 'Failed to fetch projects', details: error.message },
         { status: 500 }
@@ -76,7 +49,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data || []);
   } catch (error) {
-    console.error('API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
