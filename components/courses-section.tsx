@@ -11,7 +11,8 @@ import {
   Users, 
   ArrowRight, 
   Loader2,
-  Sparkles
+  Play,
+  CheckCircle2
 } from 'lucide-react';
 
 interface Course {
@@ -28,19 +29,30 @@ interface Course {
   featured: boolean;
 }
 
+const LEVEL_COLORS = {
+  Beginner: 'bg-green-500/10 text-green-500 border-green-500/30',
+  Intermediate: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30',
+  Advanced: 'bg-purple-500/10 text-purple-500 border-purple-500/30',
+};
+
 export default function CoursesSection() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const ref = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // SAME HERO PARALLAX MAGIC
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { scrollYProgress } = useScroll({
-    target: ref,
+    target: isMounted ? containerRef : undefined,
     offset: ['start end', 'end start']
   });
 
-  const smoothY = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const y = useTransform(smoothY, [0, 1], [-200, 200]);
+  const smoothY = useSpring(scrollYProgress, { stiffness: 80, damping: 25 });
+  const y = useTransform(smoothY, [0, 1], [-60, 60]);
+  const opacity = useTransform(smoothY, [0, 0.3, 0.7, 1], [0.5, 1, 1, 0.5]);
 
   useEffect(() => {
     const load = async () => {
@@ -59,184 +71,361 @@ export default function CoursesSection() {
   }, []);
 
   return (
-    <section ref={ref} id="courses" className="relative bg-[#060608] overflow-hidden">
-      {/* FLOATING ORBS — EXACT SAME AS HERO */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <motion.div
-          animate={{ x: [-300, 300], y: [-200, 200] }}
-          transition={{ duration: 60, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute top-40 -left-80 w-[700px] h-[700px] bg-purple-900/30 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ x: [300, -300], y: [200, -200] }}
-          transition={{ duration: 65, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute bottom-40 -right-80 w-[700px] h-[700px] bg-yellow-600/20 rounded-full blur-3xl"
-        />
+    <section ref={containerRef} id="courses" className="relative bg-[#060608] overflow-hidden">
+      {/* Subtle background */}
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+        <div className="absolute top-1/3 -left-48 w-96 h-96 bg-purple-900/20 rounded-full blur-[150px] animate-float-subtle" />
+        <div className="absolute bottom-1/3 -right-48 w-96 h-96 bg-yellow-600/15 rounded-full blur-[150px] animate-float-subtle delay-5000" />
       </div>
 
-      <motion.div style={{ y }} className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 lg:px-16 py-32 lg:py-48">
-        {/* HERO-STYLE TITLE */}
+      <motion.div 
+        style={{ y: isMounted ? y : 0, opacity: isMounted ? opacity : 1 }}
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 lg:px-16 py-20 sm:py-28 lg:py-36"
+      >
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 120 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center mb-32"
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center mb-16 sm:mb-20 lg:mb-24"
         >
-          <h2 className="text-7xl md:text-9xl lg:text-[12rem] xl:text-[14rem] font-black leading-[0.8] tracking-tighter">
-            LEARN
-            <br />
-            <span className="bg-gradient-to-r from-yellow-500 via-purple-500 to-yellow-500 bg-clip-text text-transparent animate-gradient-x">
-              FROM ME
-            </span>
+          <div className="inline-flex items-center gap-3 mb-6">
+            <span className="h-px w-12 bg-yellow-500" />
+            <span className="text-yellow-500 text-xs font-bold tracking-[0.3em] uppercase">Education</span>
+            <span className="h-px w-12 bg-yellow-500" />
+          </div>
+          
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tight mb-5 text-slate-400">
+            Online{' '}
+            <span className="courses-gradient">Courses</span>
           </h2>
+          
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 1.4 }}
-            className="text-2xl md:text-3xl text-slate-400 mt-12 font-light tracking-wide max-w-5xl mx-auto"
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed px-4"
           >
-            I don’t just build websites — I teach the <span className="text-yellow-500 font-bold">next generation</span> how to dominate the game.
+            Learn modern web development through practical, hands-on courses designed for real-world success
           </motion.p>
         </motion.div>
 
-        {/* COURSES GRID — GOD MODE */}
+        {/* Loading state */}
         {loading ? (
-          <div className="flex justify-center py-40">
-            <Loader2 className="w-20 h-20 text-yellow-500 animate-spin" />
+          <div className="flex flex-col items-center justify-center py-20 sm:py-28">
+            <Loader2 className="w-12 h-12 text-yellow-500 animate-spin mb-4" />
+            <p className="text-slate-400 text-sm">Loading courses...</p>
           </div>
         ) : courses.length === 0 ? (
-          <div className="text-center py-40">
-            <p className="text-4xl text-slate-500 font-light">Courses launching soon...</p>
+          <div className="text-center py-20 sm:py-28">
+            <div className="text-5xl mb-4">🎓</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Courses Coming Soon</h3>
+            <p className="text-slate-400 text-base max-w-md mx-auto">
+              New courses are in development. Check back soon for exciting learning opportunities!
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
-            {courses.map((course, index) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 200 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ 
-                  duration: 1.6, 
-                  delay: index * 0.2,
-                  ease: [0.16, 1, 0.3, 1]
-                }}
-                whileHover={{ y: -40, scale: 1.03 }}
-                className="group relative"
-              >
-                <div className="relative bg-gradient-to-br from-slate-900/60 via-black/80 to-slate-900/60 backdrop-blur-2xl rounded-3xl overflow-hidden border border-white/10 hover:border-yellow-500/60 transition-all duration-700 shadow-2xl hover:shadow-yellow-500/40">
+          <>
+            {/* Courses Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 mb-20 sm:mb-28 lg:mb-32">
+              {courses.map((course, index) => (
+                <motion.article
+                  key={course.id}
+                  initial={{ opacity: 0, y: 60 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ 
+                    duration: 0.5, 
+                    delay: index * 0.08,
+                    ease: [0.22, 1, 0.36, 1]
+                  }}
+                  className="course-card group"
+                >
                   {/* Thumbnail */}
-                  <div className="relative h-80 overflow-hidden">
+                  <div className="course-thumbnail">
                     <Image
                       src={course.thumbnail || "/placeholder.svg"}
                       alt={course.title}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-1000"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                    <div className="course-thumbnail-gradient" />
                     
-                    {/* Level Badge */}
-                    <div className="absolute top-6 left-6 px-5 py-2 bg-yellow-500 text-black font-black rounded-full text-sm tracking-wider">
-                      {course.level.toUpperCase()}
+                    {/* Level badge */}
+                    <div className={`level-badge ${LEVEL_COLORS[course.level]}`}>
+                      {course.level}
                     </div>
 
-                    {/* Hover Golden Glow */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      className="absolute inset-0 bg-gradient-to-t from-yellow-500/30 to-transparent"
-                    />
+                    {/* Play overlay on hover */}
+                    <div className="play-overlay">
+                      <Play className="w-12 h-12 sm:w-14 sm:h-14 text-white fill-white" />
+                    </div>
                   </div>
 
                   {/* Content */}
-                  <div className="p-10 space-y-8">
-                    <div>
-                      <h3 className="text-3xl md:text-4xl font-black text-white mb-4 group-hover:text-yellow-500 transition-colors duration-500">
-                        {course.title}
-                      </h3>
-                      <p className="text-lg text-slate-300 leading-relaxed">
-                        {course.description}
-                      </p>
-                    </div>
+                  <div className="p-6 sm:p-7">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-yellow-500 transition-colors duration-300">
+                      {course.title}
+                    </h3>
+                    
+                    <p className="text-slate-400 text-sm sm:text-base leading-relaxed mb-5 line-clamp-2">
+                      {course.description}
+                    </p>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-6 py-6 border-y border-white/10">
+                    <div className="grid grid-cols-3 gap-3 sm:gap-4 py-4 border-y border-white/5 mb-5">
                       <div className="text-center">
-                        <Clock className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                        <p className="text-sm text-slate-400">Duration</p>
-                        <p className="font-bold text-white">{course.duration}</p>
+                        <Clock className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+                        <p className="text-xs text-slate-500">Duration</p>
+                        <p className="text-sm font-semibold text-white">{course.duration}</p>
                       </div>
                       <div className="text-center">
-                        <BookOpen className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                        <p className="text-sm text-slate-400">Lessons</p>
-                        <p className="font-bold text-white">{course.lessons}</p>
+                        <BookOpen className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+                        <p className="text-xs text-slate-500">Lessons</p>
+                        <p className="text-sm font-semibold text-white">{course.lessons}</p>
                       </div>
                       <div className="text-center">
-                        <Users className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                        <p className="text-sm text-slate-400">Students</p>
-                        <p className="font-bold text-white">{course.students}+</p>
+                        <Users className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
+                        <p className="text-xs text-slate-500">Students</p>
+                        <p className="text-sm font-semibold text-white">{course.students}+</p>
                       </div>
                     </div>
 
-                    {/* Price + CTA */}
-                    <div className="flex items-center justify-between">
+                    {/* Price & CTA */}
+                    <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-4xl font-black text-yellow-500">{course.price}</p>
-                        {course.price !== 'Free' && <p className="text-sm text-slate-500">one-time payment</p>}
+                        <p className="text-2xl sm:text-3xl font-black text-yellow-500">{course.price}</p>
+                        {course.price !== 'Free' && (
+                          <p className="text-xs text-slate-500">one-time payment</p>
+                        )}
                       </div>
-                      <motion.div whileHover={{ x: 15 }}>
-                        <Link
-                          href={`/courses/${course.id}`}
-                          className="inline-flex items-center gap-4 px-8 py-5 bg-yellow-500 text-black font-black rounded-full hover:bg-yellow-400 transition-all duration-300 hover:shadow-2xl hover:shadow-yellow-500/60"
-                        >
-                          ENROLL NOW
-                          <ArrowRight className="w-6 h-6" />
-                        </Link>
-                      </motion.div>
+                      <Link
+                        href={`/courses/${course.id}`}
+                        className="course-cta group/cta"
+                      >
+                        <span className="hidden sm:inline">Enroll</span>
+                        <span className="sm:hidden">Join</span>
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover/cta:translate-x-1" />
+                      </Link>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                </motion.article>
+              ))}
+            </div>
 
-        {/* MENTORSHIP CTA — PURE FIRE */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.4, delay: 0.6 }}
-          className="mt-48 bg-gradient-to-r from-yellow-500/10 via-purple-500/10 to-yellow-500/10 backdrop-blur-2xl rounded-3xl p-16 lg:p-24 border border-white/10 text-center"
-        >
-          <Sparkles className="w-20 h-20 text-yellow-500 mx-auto mb-8" />
-          <h3 className="text-6xl md:text-8xl font-black mb-8">
-            <span className="bg-gradient-to-r from-yellow-500 to-purple-500 bg-clip-text text-transparent">
-              Want 1-on-1 Mentorship?
-            </span>
-          </h3>
-          <p className="text-2xl text-slate-300 mb-12 max-w-4xl mx-auto">
-            Skip years of trial and error. Work directly with me — weekly calls, code reviews, portfolio building, job strategy.
-          </p>
-          <Link
-            href="#contact"
-            className="inline-flex items-center gap-8 px-20 py-8 bg-yellow-500 text-black font-black text-3xl rounded-full hover:bg-yellow-400 transition-all duration-500 hover:shadow-3xl hover:shadow-yellow-500/70 hover:scale-110"
-          >
-            BOOK A MENTORSHIP CALL
-            <ArrowRight className="w-10 h-10" />
-          </Link>
-        </motion.div>
+            {/* Mentorship Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="mentorship-container"
+            >
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-500/10 border border-yellow-500/20 rounded-full mb-6">
+                  <Star className="w-8 h-8 text-yellow-500" />
+                </div>
+                <h3 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4">
+                  1-on-1{' '}
+                  <span className="courses-gradient">Mentorship</span>
+                </h3>
+                <p className="text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                  Accelerate your learning with personalized guidance, code reviews, and career strategy sessions
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
+                {[
+                  'Weekly 1-on-1 calls',
+                  'Code review sessions',
+                  'Portfolio building',
+                  'Career guidance'
+                ].map((feature, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1, duration: 0.4 }}
+                    className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/5"
+                  >
+                    <CheckCircle2 className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-slate-300">{feature}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                <Link
+                  href="#contact"
+                  className="cta-button inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold rounded-lg hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-300 group"
+                >
+                  Book a Mentorship Call
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </motion.div>
+          </>
+        )}
       </motion.div>
 
       <style jsx global>{`
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
+        /* Gradient text */
+        .courses-gradient {
+          background: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
         }
-        .animate-gradient-x {
-          background-size: 200% auto;
-          animation: gradient-x 6s ease infinite;
+
+        /* Float animation */
+        @keyframes float-subtle {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(25px, 25px); }
+        }
+        .animate-float-subtle {
+          animation: float-subtle 25s ease-in-out infinite;
+        }
+        .delay-5000 {
+          animation-delay: 5s;
+        }
+
+        /* Course cards */
+        .course-card {
+          position: relative;
+          background: linear-gradient(135deg, rgba(15, 15, 20, 0.9) 0%, rgba(10, 10, 15, 0.95) 100%);
+          backdrop-filter: blur(10px);
+          border-radius: 1rem;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .course-card:hover {
+          border-color: rgba(234, 179, 8, 0.3);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(234, 179, 8, 0.1);
+          transform: translateY(-8px);
+        }
+
+        @media (min-width: 1024px) {
+          .course-card:hover {
+            transform: translateY(-12px);
+          }
+        }
+
+        /* Thumbnail */
+        .course-thumbnail {
+          position: relative;
+          height: 14rem;
+          overflow: hidden;
+          background: #000;
+        }
+        @media (min-width: 640px) {
+          .course-thumbnail {
+            height: 16rem;
+          }
+        }
+
+        .course-thumbnail-gradient {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+          z-index: 1;
+        }
+
+        /* Level badge */
+        .level-badge {
+          position: absolute;
+          top: 1rem;
+          left: 1rem;
+          padding: 0.375rem 0.75rem;
+          border-radius: 9999px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          border: 1px solid;
+          z-index: 2;
+          backdrop-filter: blur(8px);
+        }
+
+        /* Play overlay */
+        .play-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0, 0, 0, 0.6);
+          opacity: 0;
+          transition: opacity 0.3s;
+          z-index: 2;
+        }
+        .course-card:hover .play-overlay {
+          opacity: 1;
+        }
+
+        /* Course CTA */
+        .course-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          background: rgba(234, 179, 8, 0.1);
+          color: #eab308;
+          border: 1px solid rgba(234, 179, 8, 0.3);
+          border-radius: 0.5rem;
+          font-weight: 700;
+          font-size: 0.875rem;
+          transition: all 0.25s;
+        }
+        .course-cta:hover {
+          background: #eab308;
+          color: #000;
+          border-color: #eab308;
+        }
+
+        @media (min-width: 640px) {
+          .course-cta {
+            padding: 0.875rem 1.75rem;
+          }
+        }
+
+        /* Mentorship container */
+        .mentorship-container {
+          background: linear-gradient(135deg, rgba(234, 179, 8, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+          backdrop-filter: blur(10px);
+          border-radius: 1.5rem;
+          padding: 2.5rem 1.5rem;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (min-width: 640px) {
+          .mentorship-container {
+            padding: 3rem 2rem;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .mentorship-container {
+            padding: 4rem 3rem;
+          }
+        }
+
+        /* CTA button */
+        .cta-button:hover {
+          transform: translateY(-2px);
+        }
+
+        /* Reduce motion */
+        @media (prefers-reduced-motion: reduce) {
+          *,
+          *::before,
+          *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
     </section>
