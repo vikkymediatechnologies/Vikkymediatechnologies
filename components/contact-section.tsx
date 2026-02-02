@@ -113,7 +113,7 @@ export function ContactSection() {
           </div>
           
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-tight tracking-tight mb-5 text-white">
-            Let's Work{' '}
+            Let's Work together{' '}
             <span className="contact-gradient">Together</span>
           </h2>
           
