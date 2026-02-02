@@ -61,30 +61,61 @@ export function ContactSection() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setStatus('idle');
+  e.preventDefault();
+  setLoading(true);
+  setStatus('idle');
 
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
 
-      if (!res.ok) throw new Error('Failed to send');
+    const data = await res.json();
 
-      setStatus('success');
-      setFormData({ name: '', email: '', service: 'web-development', message: '' });
-      setTimeout(() => setStatus('idle'), 6000);
-    } catch (err) {
-      setStatus('error');
-      setTimeout(() => setStatus('idle'), 6000);
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      console.error("API Error Response:", data);
+      throw new Error(data.error || "Failed to send");
     }
-  };
+
+    setStatus('success');
+    setFormData({ name: '', email: '', service: 'web-development', message: '' });
+  } catch (err) {
+    console.error("Frontend Submit Error:", err);
+    setStatus('error');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setStatus('idle');
+
+  //   try {
+  //     const res = await fetch('/api/contact', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(formData),
+  //     });
+
+  //     if (!res.ok) throw new Error('Failed to send');
+
+  //     setStatus('success');
+  //     setFormData({ name: '', email: '', service: 'web-development', message: '' });
+  //     setTimeout(() => setStatus('idle'), 6000);
+  //   } catch (err) {
+  //     setStatus('error');
+  //     setTimeout(() => setStatus('idle'), 6000);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <section ref={containerRef} id="contact" className="relative bg-[#060608] overflow-hidden">

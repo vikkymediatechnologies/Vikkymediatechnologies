@@ -36,29 +36,54 @@ export async function POST(request: Request) {
     if (error) throw error;
 
     // ✅ Send Email Notification
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    // ✅ Send Email Notification (Gmail Reliable Setup)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
-    await transporter.sendMail({
-      from: `"Website Contact Form" <${process.env.SMTP_USER}>`,
-      to: "vikkymediatechnologies@gmail.com",
-      subject: `📩 New Contact Message from ${name}`,
-      html: `
-        <h2>New Contact Request</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Service:</strong> ${service}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
-      `,
-    });
+    // const transporter = nodemailer.createTransport({
+    //   host: process.env.SMTP_HOST,
+    //   port: Number(process.env.SMTP_PORT),
+    //   secure: true,
+    //   auth: {
+    //     user: process.env.SMTP_USER,
+    //     pass: process.env.SMTP_PASS,
+    //   },
+    // });
+
+    // await transporter.sendMail({
+    //   from: `"Website Contact Form" <${process.env.SMTP_USER}>`,
+    //   to: "vikkymediatechnologies@gmail.com",
+    //   subject: `📩 New Contact Message from ${name}`,
+    //   html: `
+    //     <h2>New Contact Request</h2>
+    //     <p><strong>Name:</strong> ${name}</p>
+    //     <p><strong>Email:</strong> ${email}</p>
+    //     <p><strong>Service:</strong> ${service}</p>
+    //     <p><strong>Message:</strong></p>
+    //     <p>${message}</p>
+    //   `,
+    // });
+
+
+    
+await transporter.sendMail({
+  from: `"Website Contact Form" <${process.env.SMTP_USER}>`,
+  to: "vikkymediatechnologies@gmail.com",
+  subject: `📩 New Contact Message from ${name}`,
+  html: `
+    <h2>New Contact Request</h2>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Service:</strong> ${service}</p>
+    <p><strong>Message:</strong></p>
+    <p>${message}</p>
+  `,
+});
 
     return NextResponse.json(
       { success: true, message: "Message received and email sent!" },

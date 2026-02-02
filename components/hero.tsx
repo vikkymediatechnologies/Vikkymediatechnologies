@@ -9,7 +9,7 @@ import {
   AnimatePresence,
 } from 'framer-motion';
 import {
-  // Twitter,
+  Twitter,
   Instagram,
   Linkedin,
   Menu,
@@ -24,7 +24,7 @@ import Link from 'next/link';
 const socialLinks = [
   { icon: Github, href: 'https://github.com/vikkymediatechnologies' },
   // { icon: Youtube, href: 'https://youtube.com/@vikkymedia' },
-  // { icon: Twitter, href: 'https://twitter.com/vikkymedia' },
+  { icon: Twitter, href: 'https://x.com/Vikkymediatech' },
   { icon: Instagram, href: 'https://www.instagram.com/vikcodedev/' },
   { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61574777883268' },
   { icon: Linkedin, href: 'https://www.linkedin.com/in/victor-joseph-14a536261/' },
